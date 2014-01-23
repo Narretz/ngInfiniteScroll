@@ -78,7 +78,6 @@ mod.directive 'infiniteScroll', ['$rootScope', '$window', '$timeout', 'THROTTLE_
           func.call()
         else timeout = $timeout(later, remaining) unless timeout
 
-    debugger
     if THROTTLE_MILLISECONDS?
       handler = throttle(handler, THROTTLE_MILLISECONDS)
 

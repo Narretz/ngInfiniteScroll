@@ -1,4 +1,4 @@
-/* ng-infinite-scroll - v1.0.0 - 2014-01-15 */
+/* ng-infinite-scroll - v1.0.0 - 2014-01-23 */
 var mod;
 
 mod = angular.module('infinite-scroll', []);
@@ -73,7 +73,6 @@ mod.directive('infiniteScroll', [
             }
           };
         };
-        debugger;
         if (THROTTLE_MILLISECONDS != null) {
           handler = throttle(handler, THROTTLE_MILLISECONDS);
         }
