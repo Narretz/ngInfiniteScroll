@@ -32,25 +32,36 @@ mod.directive 'infiniteScroll', ['$rootScope', '$window', '$timeout', 'THROTTLE_
           checkWhenEnabled = false
           handler()
 
-    container = $window
-    
+    container = null
+    error = new Error("invalid infinite-scroll-container attribute.")
+
     # infinite-scroll-container sets the container which we want to be
     # infinte scrolled, instead of the whole window window. Must be an
     # Angular or jQuery element.
     if attrs.infiniteScrollContainer?
-      scope.$watch attrs.infiniteScrollContainer, (value) ->
-        value = angular.element(value)
-        if value?
-          container = value
+      attrs.$observe 'infiniteScrollContainer', (newVal) ->
+        if newVal == 'window'
+          newVal = $window
         else
-          throw "invalid infinite-scroll-container attribute."
+          newVal = angular.element(newVal)
 
-    # infinite-scroll-parent establishes this element's parent as the 
+        if newVal.length > 0
+          if newVal != container
+            bind(newVal, true)
+          container = newVal
+        else
+          throw error
+    # infinite-scroll-parent establishes this element's parent as the
     # container infinitely scrolled instead of the whole window.
-    if attrs.infiniteScrollParent?
+    else if attrs.infiniteScrollParent?
       container = elem.parent()
       scope.$watch attrs.infiniteScrollParent, () ->
-        container = elem.parent()
+        parent = elem.parent()
+        if container != parent
+          bind(parent, true)
+          container = parent
+    else
+      bind($window)
 
     # infinite-scroll specifies a function to call when the window,
     # or some other container specified by infinite-scroll-container,
@@ -106,9 +117,13 @@ mod.directive 'infiniteScroll', ['$rootScope', '$window', '$timeout', 'THROTTLE_
     if THROTTLE_MILLISECONDS?
       handler = throttle(handler, THROTTLE_MILLISECONDS)
 
-    container.on 'scroll', handler
-    scope.$on '$destroy', ->
-      container.off 'scroll', handler
+    bind = (newContainer, unbind) ->
+      if unbind == true && container?
+        container.off 'scroll', handler
+
+      newContainer.on 'scroll', handler
+      scope.$on '$destroy', ->
+        newContainer.off 'scroll', handler
 
     $timeout (->
       if attrs.infiniteScrollImmediateCheck
